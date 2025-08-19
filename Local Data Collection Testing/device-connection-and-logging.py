@@ -1,6 +1,9 @@
 # pip install bleak
 import asyncio
 from bleak import BleakScanner, BleakClient
+import csv
+import os
+from datetime import datetime, timezone
 
 HR_SERVICE = "0000180d-0000-1000-8000-00805f9b34fb"
 HR_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"
@@ -32,10 +35,31 @@ async def main():
         candidates = [d for d in devs]
         print("Pick device manually:", [d.name for d in candidates])
         return
+    # Prepare CSV log
+    log_path = os.path.join(os.path.dirname(__file__), "hr_rr_log.csv")
+    if not os.path.exists(log_path) or os.path.getsize(log_path) == 0:
+        with open(log_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["timestamp", "HR", "RR"])  # RR is seconds per beat (BLE HRM RR-interval)
+
     async with BleakClient(target) as client:
         def cb(_, data):
             hr, energy, rrs = parse_hrm(bytearray(data))
             print(f"HR={hr} bpm rr={rrs}")
+            ts = datetime.now(timezone.utc).isoformat()
+            try:
+                # Always record HR when > 0, regardless of RR presence
+                if isinstance(hr, int) and hr > 0:
+                    with open(log_path, "a", newline="") as f:
+                        csv.writer(f).writerow([ts, hr, ""])  # HR-only row
+                # Record any non-zero RR values as separate rows (skip zeros)
+                for rr in (rrs or []):
+                    if rr and rr > 0:
+                        with open(log_path, "a", newline="") as f:
+                            csv.writer(f).writerow([ts, hr, rr])  # RR-only row
+            except Exception as e:
+                print(f"Log write error: {e}")
+
         await client.start_notify(HR_MEASUREMENT, cb)
         print("Subscribed. Streaming… Ctrl+C to stop.")
         while True:
