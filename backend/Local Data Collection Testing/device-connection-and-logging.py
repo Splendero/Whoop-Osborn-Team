@@ -1,4 +1,3 @@
-# pip install bleak aiohttp
 import asyncio
 from bleak import BleakScanner, BleakClient
 import csv
@@ -6,6 +5,9 @@ import os
 from datetime import datetime, timezone 
 import aiohttp
 import json
+import pandas as pd
+import numpy as np
+from typing import Dict, Optional
 
 HR_SERVICE = "0000180d-0000-1000-8000-00805f9b34fb"
 HR_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb"

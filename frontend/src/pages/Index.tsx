@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Shield, AlertTriangle, Settings, Wifi, WifiOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { whoopService } from "@/services/whoopService";
+import { HeartRateGraph } from "@/components/HeartRateGraph";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -54,7 +55,8 @@ const Index = () => {
     cancelAlert,
     confirmAlert,
     startMonitoring,
-    stopMonitoring
+    stopMonitoring,
+    recentHeartRates
   } = useWhoopMonitoring(userSettings);
 
   const handleToggleMonitoring = () => {
@@ -154,6 +156,9 @@ const Index = () => {
       <div className="max-w-4xl mx-auto grid gap-6">
         {/* WHOOP Data */}
         <WhoopDataCard data={currentData} />
+        
+        {/* Heart Rate Graph */}
+        <HeartRateGraph heartRates={recentHeartRates} />
         
         {/* Monitoring Status */}
         <MonitoringStatus 
