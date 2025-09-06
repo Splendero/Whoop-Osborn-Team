@@ -25,8 +25,8 @@ export const HeartRateGraph = ({ heartRates, className }: HeartRateGraphProps) =
 
   // Calculate min/max for Y axis with fallbacks
   const currentHR = heartRates.length > 0 ? heartRates[heartRates.length - 1] : 0;
-  const minHR = heartRates.length > 0 ? Math.max(currentHR / 3, 40) : 40;
-  const maxHR = heartRates.length > 0 ? Math.min(2 * currentHR, 200) : 200;
+  const minHR = heartRates.length > 0 ? Math.round(Math.max(currentHR / 1.1, 40)) : 40;
+  const maxHR = heartRates.length > 0 ? Math.round(Math.min(1.1 * currentHR, 200)) : 170;
 
   if (heartRates.length === 0) {
     return (

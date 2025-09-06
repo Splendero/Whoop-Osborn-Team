@@ -14,8 +14,9 @@ interface ApiConfig {
 
 interface ApiHeartRateData {
   timestamp: string;
-  hr: number;
-  rr: number | null;
+  hr: number | null;
+  rr_intervals: number[] | null;
+  battery: number | null;
 }
 
 export class WhoopStreamingService {
@@ -88,9 +89,8 @@ export class WhoopStreamingService {
         headers['Authorization'] = `Bearer ${this.apiConfig.apiKey}`;
       }
 
-      // Changed from POST to GET request
       const response = await fetch(this.apiConfig.endpoint!, {
-        method: 'GET', // Changed from POST to GET
+        method: 'GET',
         headers
       });
 
@@ -103,12 +103,25 @@ export class WhoopStreamingService {
       // Reset retry count on successful request
       this.retryCount = 0;
       
+      // Calculate HRV from RR intervals if available
+      let hrv = 0;
+      if (apiData.rr_intervals && apiData.rr_intervals.length > 1) {
+        // Calculate RMSSD (Root Mean Square of Successive Differences)
+        const rrDiffs = [];
+        for (let i = 1; i < apiData.rr_intervals.length; i++) {
+          rrDiffs.push(Math.pow(apiData.rr_intervals[i] - apiData.rr_intervals[i-1], 2));
+        }
+        hrv = Math.sqrt(rrDiffs.reduce((sum, diff) => sum + diff, 0) / rrDiffs.length) * 1000; // Convert to ms
+      }
+      
       const whoopData: WhoopData = {
-        heartRate: apiData.hr,
-        hrv: 0,
+        heartRate: apiData.hr || 0,
+        hrv: hrv,
         strain: 0,
         recovery: 0,
-        timestamp: new Date(apiData.timestamp)
+        timestamp: new Date(apiData.timestamp),
+        battery: apiData.battery || 0,
+        rrIntervals: apiData.rr_intervals || []
       };
 
       this.listeners.forEach(listener => listener(whoopData));
@@ -148,12 +161,24 @@ export class WhoopStreamingService {
   }
 
   updateHeartRateData(apiData: ApiHeartRateData) {
+    // Calculate HRV from RR intervals if available
+    let hrv = 0;
+    if (apiData.rr_intervals && apiData.rr_intervals.length > 1) {
+      const rrDiffs = [];
+      for (let i = 1; i < apiData.rr_intervals.length; i++) {
+        rrDiffs.push(Math.pow(apiData.rr_intervals[i] - apiData.rr_intervals[i-1], 2));
+      }
+      hrv = Math.sqrt(rrDiffs.reduce((sum, diff) => sum + diff, 0) / rrDiffs.length) * 1000;
+    }
+
     const whoopData: WhoopData = {
-      heartRate: apiData.hr,
-      hrv: 0,
+      heartRate: apiData.hr || 0,
+      hrv: hrv,
       strain: 0,
       recovery: 0,
-      timestamp: new Date(apiData.timestamp)
+      timestamp: new Date(apiData.timestamp),
+      battery: apiData.battery || 0,
+      rrIntervals: apiData.rr_intervals || []
     };
 
     this.listeners.forEach(listener => listener(whoopData));

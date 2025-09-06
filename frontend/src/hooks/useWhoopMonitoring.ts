@@ -71,9 +71,9 @@ export const useWhoopMonitoring = (settings: UserSettings) => {
   const handleDataUpdate = useCallback((data: WhoopData) => {
     setCurrentData(data);
     
-    // Update recent heart rates (keep last 20 readings)
+    // Update recent heart rates (keep last 120 readings)
     setRecentHeartRates(prev => {
-      const updated = [...prev, data.heartRate].slice(-20);
+      const updated = [...prev, data.heartRate].slice(-120);
       
       // Check for distress
       if (detectDistress(data, updated) && !activeAlert) {

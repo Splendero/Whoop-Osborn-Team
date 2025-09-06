@@ -4,6 +4,8 @@ export interface WhoopData {
   strain: number;
   recovery: number;
   timestamp: Date;
+  battery?: number;
+  rrIntervals?: number[];
 }
 
 export interface MotionData {

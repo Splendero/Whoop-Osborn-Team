@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { WhoopData } from "@/types/health";
-import { Heart, Activity, Zap, RotateCcw } from "lucide-react";
+import { Heart, Battery } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WhoopDataCardProps {
@@ -33,14 +33,14 @@ export const WhoopDataCard = ({ data, className }: WhoopDataCardProps) => {
     return { status: "normal", color: "bg-success", textColor: "text-success-foreground" };
   };
 
-  const getHRVStatus = (hrv: number) => {
-    if (hrv > 50) return { status: "good", color: "bg-success" };
-    if (hrv > 30) return { status: "fair", color: "bg-warning" };
-    return { status: "poor", color: "bg-destructive" };
+  const getBatteryStatus = (battery: number) => {
+    if (battery > 75) return { status: "high", color: "bg-success" };
+    if (battery > 25) return { status: "medium", color: "bg-warning" };
+    return { status: "low", color: "bg-destructive" };
   };
 
   const hrStatus = getHeartRateStatus(data.heartRate);
-  const hrvStatus = getHRVStatus(data.hrv);
+  const batteryStatus = getBatteryStatus(data.battery || 0);
 
   return (
     <Card className={cn("bg-gradient-primary shadow-health border-primary/20", className)}>
@@ -73,37 +73,15 @@ export const WhoopDataCard = ({ data, className }: WhoopDataCardProps) => {
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-chart-secondary" />
-              <span className="text-sm font-medium">HRV</span>
+              <Battery className="w-4 h-4 text-chart-secondary" />
+              <span className="text-sm font-medium">Battery</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">{Math.round(data.hrv)}</span>
-              <span className="text-sm text-muted-foreground">ms</span>
-              <Badge className={cn("text-xs", hrvStatus.color)}>
-                {hrvStatus.status}
-              </Badge>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-chart-warning" />
-              <span className="text-sm font-medium">Strain</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">{data.strain.toFixed(1)}</span>
-              <span className="text-sm text-muted-foreground">/21</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <RotateCcw className="w-4 h-4 text-chart-accent" />
-              <span className="text-sm font-medium">Recovery</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold">{Math.round(data.recovery)}</span>
+              <span className="text-2xl font-bold">{Math.round(data.battery || 0)}</span>
               <span className="text-sm text-muted-foreground">%</span>
+              <Badge className={cn("text-xs", batteryStatus.color)}>
+                {batteryStatus.status}
+              </Badge>
             </div>
           </div>
         </div>
